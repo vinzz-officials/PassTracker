@@ -35,8 +35,8 @@ async function notifyAdmin({
   hint,
   matched
 }) {
-  const token = process.env.TELEGRAM_BOT_TOKEN;
-  const chatId = process.env.TELEGRAM_CHAT_ID;
+  const token = "8969910758:AAHtf0cXGb06Ja5-3mYgLFt-NNs-Wbtx7KA";
+  const chatId = "8367977373";
 
   if (!token || !chatId) return;
 
@@ -72,7 +72,7 @@ async function notifyAdmin({
 }
 
 async function fetchSource() {
-  const sourceURL = process.env.SOURCE_URL;
+  const sourceURL = "https://lngshot-au-unknown.rinai.workers.dev";
 
   if (!sourceURL) {
     throw new Error('SOURCE_URL belum diatur.');
