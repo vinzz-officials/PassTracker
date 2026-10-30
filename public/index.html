@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#080808">
+  <title>NOIR — Hint Tracker</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 50% 0%, #202020 0%, transparent 45%),
+        #080808;
+      color: #eee;
+      font-family: Arial, sans-serif;
+      padding: 24px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 540px;
+    }
+
+    .brand {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .brand h1 {
+      font-size: 42px;
+      letter-spacing: 12px;
+      font-weight: 800;
+    }
+
+    .brand p {
+      color: #777;
+      font-size: 11px;
+      letter-spacing: 4px;
+      margin-top: 8px;
+    }
+
+    .panel {
+      background: rgba(255,255,255,.035);
+      border: 1px solid #292929;
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 20px 70px #0009;
+    }
+
+    .label {
+      display: block;
+      color: #aaa;
+      font-size: 12px;
+      margin-bottom: 12px;
+      letter-spacing: 2px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 145px;
+      resize: vertical;
+      background: #0b0b0b;
+      color: #eee;
+      border: 1px solid #333;
+      border-radius: 10px;
+      padding: 15px;
+      outline: none;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    textarea:focus {
+      border-color: #777;
+    }
+
+    .consent {
+      display: flex;
+      gap: 10px;
+      margin: 17px 0;
+      color: #999;
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    .consent input {
+      accent-color: #fff;
+      margin-top: 2px;
+    }
+
+    button {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 9px;
+      background: #eee;
+      color: #080808;
+      font-weight: 800;
+      letter-spacing: 3px;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: .5;
+      cursor: wait;
+    }
+
+    .terminal {
+      margin-top: 18px;
+      padding: 16px;
+      min-height: 150px;
+      max-height: 250px;
+      overflow-y: auto;
+      background: #050505;
+      border: 1px solid #242424;
+      border-radius: 10px;
+      font-family: monospace;
+      font-size: 11px;
+      line-height: 1.8;
+      color: #999;
+      overflow-wrap: anywhere;
+    }
+
+    .terminal .line::before {
+      content: "> ";
+      color: #eee;
+    }
+
+    .result {
+      margin-top: 15px;
+      padding: 14px;
+      border-radius: 9px;
+      display: none;
+      font-size: 13px;
+    }
+
+    .result.success {
+      display: block;
+      background: #102216;
+      color: #8be5a2;
+      border: 1px solid #245b32;
+    }
+
+    .result.fail {
+      display: block;
+      background: #261212;
+      color: #ff9999;
+      border: 1px solid #642727;
+    }
+
+    footer {
+      text-align: center;
+      color: #555;
+      font-size: 10px;
+      margin-top: 22px;
+      letter-spacing: 2px;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="container">
+    <header class="brand">
+      <h1>NOIR</h1>
+      <p>HINT TRACKING ENGINE</p>
+    </header>
+
+    <section class="panel">
+      <label class="label" for="hint">
+        INPUT HINT
+      </label>
+
+      <textarea
+        id="hint"
+        placeholder="Paste hint text here..."
+        maxlength="1000"
+      ></textarea>
+
+      <label class="consent">
+        <input type="checkbox" id="consent">
+
+        <span>
+          Saya menyetujui pengiriman IP yang dilaporkan server
+          dan teks hint yang saya masukkan ke administrator
+          melalui Telegram untuk keperluan monitoring.
+        </span>
+      </label>
+
+      <button id="start">
+        START TRACKING
+      </button>
+
+      <div class="terminal" id="terminal">
+        <div class="line">NOIR engine ready.</div>
+        <div class="line">Waiting for input.</div>
+      </div>
+
+      <div class="result" id="result"></div>
+    </section>
+
+    <footer>
+      NOIR SYSTEMS · 2026
+    </footer>
+  </main>
+
+  <script>
+    const hintInput = document.getElementById('hint');
+    const consentInput = document.getElementById('consent');
+    const startButton = document.getElementById('start');
+    const terminal = document.getElementById('terminal');
+    const resultBox = document.getElementById('result');
+
+    function log(message) {
+      const line = document.createElement('div');
+      line.className = 'line';
+      line.textContent = message;
+
+      terminal.appendChild(line);
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    function showResult(message, success) {
+      resultBox.textContent = message;
+      resultBox.className = 'result ' + (
+        success ? 'success' : 'fail'
+      );
+    }
+
+    startButton.addEventListener('click', async () => {
+      const hint = hintInput.value.trim();
+
+      if (!hint) {
+        alert('Masukkan hint terlebih dahulu.');
+        return;
+      }
+
+      startButton.disabled = true;
+      terminal.innerHTML = '';
+      resultBox.style.display = 'none';
+
+      log('Starting tracking process...');
+
+      try {
+        const response = await fetch('/api/track', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            hint,
+            consent: consentInput.checked
+          })
+        });
+
+        if (!response.ok || !response.body) {
+          throw new Error('HTTP ' + response.status);
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+
+        let buffer = '';
+
+        while (true) {
+          const { value, done } = await reader.read();
+
+          if (done) break;
+
+          buffer += decoder.decode(value, {
+            stream: true
+          });
+
+          const events = buffer.split('\n\n');
+          buffer = events.pop() || '';
+
+          for (const raw of events) {
+            const lines = raw.split('\n');
+
+            let event = 'message';
+            let data = '';
+
+            for (const line of lines) {
+              if (line.startsWith('event:')) {
+                event = line.slice(6).trim();
+              }
+
+              if (line.startsWith('data:')) {
+                data += line.slice(5).trim();
+              }
+            }
+
+            if (!data) continue;
+
+            const payload = JSON.parse(data);
+
+            if (event === 'log') {
+              log(payload.message);
+            }
+
+            if (event === 'result') {
+              showResult(
+                payload.message,
+                payload.matched
+              );
+            }
+
+            if (event === 'error') {
+              showResult(
+                payload.message,
+                false
+              );
+            }
+          }
+        }
+      } catch (error) {
+        log('ERROR: ' + error.message);
+        showResult('Tracking failed.', false);
+      } finally {
+        startButton.disabled = false;
+      }
+    });
+  </script>
+</body>
+  </html>
